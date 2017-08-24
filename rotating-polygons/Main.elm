@@ -95,7 +95,7 @@ randomizeVertices wd ht n =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ AnimationFrame.times Tick
+        [ AnimationFrame.diffs Tick
         , Keyboard.ups Key
         ]
 
@@ -107,8 +107,8 @@ subscriptions model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Tick t ->
-            ( { model | t = t }, Cmd.none )
+        Tick dt ->
+            ( { model | t = model.t + dt }, Cmd.none )
 
         SetVertices vertices ->
             ( { model | vertices = vertices }, Cmd.none )
