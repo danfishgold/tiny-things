@@ -114,16 +114,49 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick dt ->
-            ( { model | t = model.t + dt }, Cmd.none )
+            ( { model | t = model.t + dt } |> updateHistory, Cmd.none )
 
         SetVertices vertices ->
             ( { model | vertices = vertices }, Cmd.none )
 
         Key 13 ->
-            ( model, randomizeVertices model.width model.height 9 )
+            ( { model | history = [], t = 0 }
+            , randomizeVertices model.width model.height 9
+            )
 
         Key _ ->
             ( model, Cmd.none )
+
+
+updateHistory : Model -> Model
+updateHistory ({ t, history, historyCycle, historyCount } as model) =
+    let
+        lastHistory =
+            List.maximum history
+
+        shouldAdd =
+            case lastHistory of
+                Nothing ->
+                    True
+
+                Just t0 ->
+                    t - t0 > historyCycle
+
+        newHistory =
+            if shouldAdd then
+                t :: history |> keepBiggest historyCount
+            else
+                history
+    in
+        if shouldAdd then
+            { model | history = newHistory }
+        else
+            model
+
+
+keepBiggest : Int -> List comparable -> List comparable
+keepBiggest n xs =
+    xs |> List.sort |> List.drop (List.length xs - n)
 
 
 
@@ -203,7 +236,8 @@ polygon t strokeWidth_ vertices =
 
 view : Model -> Svg Msg
 view model =
-    [ polygon model.t 4 model.vertices
+    [ model.history |> List.map (\t -> polygon t 0.5 model.vertices) |> g []
+    , polygon model.t 4 model.vertices
     ]
         |> svg [ width <| toString model.width, height <| toString model.height ]
 
@@ -215,7 +249,7 @@ view model =
 main : Program Never Model Msg
 main =
     program
-        { init = init 5 500 9 500 500
+        { init = init 20 50 9 500 500
         , subscriptions = subscriptions
         , update = update
         , view = view
