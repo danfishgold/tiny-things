@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Html exposing (program)
 import Svg exposing (Svg, svg, g, defs, circle, line)
-import Svg.Attributes exposing (width, height, cx, cy, r, x1, y1, x2, y2, strokeWidth, fill)
+import Svg.Attributes exposing (width, height, cx, cy, r, x1, y1, x2, y2, strokeWidth, fill, opacity)
 import Gradient exposing (gradient, gradientStroke)
 import Color exposing (Color)
 import Color.Convert exposing (colorToCssRgb)
@@ -191,8 +191,8 @@ pairs xs =
                 []
 
 
-polygon : Float -> Float -> List Vertex -> Svg Msg
-polygon t strokeWidth_ vertices =
+polygon : Float -> Float -> Float -> List Vertex -> Svg Msg
+polygon t opacity_ strokeWidth_ vertices =
     let
         vertexParams =
             List.map (vertexParameters t) vertices
@@ -227,17 +227,22 @@ polygon t strokeWidth_ vertices =
                 ]
                 []
     in
-        g []
+        g [ opacity <| toString opacity_ ]
             [ Svg.defs [] gradients
             , edges |> List.indexedMap line |> g []
             , vertexParams |> List.map point |> g []
             ]
 
 
+historyOpacity : Float -> Model -> Float
+historyOpacity t0 { t, historyCount, historyCycle } =
+    1 - (t - t0) / (historyCycle * (toFloat historyCount + 1))
+
+
 view : Model -> Svg Msg
 view model =
-    [ model.history |> List.map (\t -> polygon t 0.5 model.vertices) |> g []
-    , polygon model.t 4 model.vertices
+    [ model.history |> List.map (\t0 -> polygon t0 (historyOpacity t0 model) 0.5 model.vertices) |> g []
+    , polygon model.t 1 4 model.vertices
     ]
         |> svg [ width <| toString model.width, height <| toString model.height ]
 
