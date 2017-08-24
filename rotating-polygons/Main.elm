@@ -16,6 +16,9 @@ type alias Model =
     { width : Float
     , height : Float
     , t : Float
+    , history : List Float
+    , historyCount : Int
+    , historyCycle : Float
     , vertices : List Vertex
     }
 
@@ -35,14 +38,17 @@ type alias Vertex =
     }
 
 
-init : Float -> Float -> ( Model, Cmd Msg )
-init width height =
+init : Int -> Float -> Int -> Float -> Float -> ( Model, Cmd Msg )
+init historyCount historyCycle vertexCount width height =
     ( { width = width
       , height = height
       , t = 0
+      , history = []
+      , historyCount = historyCount
+      , historyCycle = historyCycle
       , vertices = []
       }
-    , randomizeVertices width height 9
+    , randomizeVertices width height vertexCount
     )
 
 
@@ -202,7 +208,7 @@ view model =
 main : Program Never Model Msg
 main =
     program
-        { init = init 500 500
+        { init = init 5 500 9 500 500
         , subscriptions = subscriptions
         , update = update
         , view = view
