@@ -158,14 +158,14 @@ pairs xs =
                 []
 
 
-view : Model -> Svg Msg
-view model =
+polygon : Float -> Float -> List Vertex -> Svg Msg
+polygon t strokeWidth_ vertices =
     let
-        vertices =
-            List.map (vertexParameters model.t) model.vertices
+        vertexParams =
+            List.map (vertexParameters t) vertices
 
         edges =
-            pairs vertices
+            pairs vertexParams
 
         gradients =
             edges
@@ -178,7 +178,7 @@ view model =
             Svg.circle
                 [ cx <| toString x
                 , cy <| toString y
-                , r <| "2"
+                , r <| toString <| strokeWidth_ / 2
                 , fill <| colorToCssRgb c
                 ]
                 []
@@ -190,15 +190,22 @@ view model =
                 , x2 <| toString xb
                 , y2 <| toString yb
                 , gradientStroke <| toString i
-                , strokeWidth "4"
+                , strokeWidth <| toString strokeWidth_
                 ]
                 []
     in
-        [ Svg.defs [] gradients
-        , edges |> List.indexedMap line |> g []
-        , vertices |> List.map point |> g []
-        ]
-            |> svg [ width <| toString model.width, height <| toString model.height ]
+        g []
+            [ Svg.defs [] gradients
+            , edges |> List.indexedMap line |> g []
+            , vertexParams |> List.map point |> g []
+            ]
+
+
+view : Model -> Svg Msg
+view model =
+    [ polygon model.t 4 model.vertices
+    ]
+        |> svg [ width <| toString model.width, height <| toString model.height ]
 
 
 
