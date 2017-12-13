@@ -1,6 +1,7 @@
 module Main exposing (..)
 
-import Html exposing (Html, program, div, text)
+import Html exposing (Html, beginnerProgram, div, button, text)
+import Html.Events exposing (onClick)
 import Color exposing (black)
 import Pointer
 import Collage exposing (..)
@@ -21,23 +22,17 @@ type alias Model =
 
 type Msg
     = SetTarget Point.Point
+    | SetJoints (List Joint)
 
 
-init : Float -> Float -> ( Model, Cmd Msg )
+init : Float -> Float -> Model
 init wd ht =
-    ( { joints =
-            [ Joint 50 0, Joint 70 0.8, Joint 30 1.2, Joint 45 0.5 ]
-      , target = ( 0, 0 )
-      , width = wd
-      , height = ht
-      }
-    , Cmd.none
-    )
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.none
+    { joints =
+        [ Joint 50 0, Joint 70 0.8, Joint 30 1.2, Joint 45 0.5 ]
+    , target = ( 0, 0 )
+    , width = wd
+    , height = ht
+    }
 
 
 pointerToCollage : Model -> Point.Point -> Point.Point
@@ -45,7 +40,7 @@ pointerToCollage { width, height } ( x, y ) =
     ( x - width / 2, -y + height / 2 )
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> Model
 update msg model =
     case msg of
         SetTarget position ->
@@ -53,19 +48,20 @@ update msg model =
                 target =
                     Point.capAtRadius (Joint.maxRadius model.joints) position
             in
-                ( { model
+                { model
                     | target = position
                     , joints =
                         model.joints
                             |> Fabrik.iteration position
                             |> Fabrik.iteration position
-                  }
-                , Cmd.none
-                )
+                }
+
+        SetJoints joints ->
+            { model | joints = joints }
 
 
-view : Model -> Html Msg
-view model =
+svgView : Model -> Html Msg
+svgView model =
     let
         points =
             model.joints
@@ -94,11 +90,31 @@ view model =
             |> div [ Pointer.move (pointerToCollage model >> SetTarget) ]
 
 
+view : Model -> Html Msg
+view model =
+    div []
+        [ svgView model
+        , div []
+            [ button
+                [ onClick <| SetJoints [ Joint 50 0, Joint 70 0.8, Joint 30 1.2, Joint 45 0.5 ]
+                ]
+                [ text "A few joints" ]
+            , button
+                [ onClick <| SetJoints <| List.repeat 10 (Joint 20 0)
+                ]
+                [ text "A lot of small joints" ]
+            , button
+                [ onClick <| SetJoints <| List.repeat 40 (Joint 20 0)
+                ]
+                [ text "Too many small joints" ]
+            ]
+        ]
+
+
 main : Program Never Model Msg
 main =
-    program
-        { init = init 500 500
-        , subscriptions = subscriptions
+    beginnerProgram
+        { model = init 500 500
         , update = update
         , view = view
         }
