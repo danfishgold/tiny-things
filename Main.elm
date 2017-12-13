@@ -75,11 +75,11 @@ svgView model =
 
         dots =
             points
-                |> List.map (\p -> circle 4 |> filled (uniform black) |> shift p)
+                |> List.map (\p -> circle 3 |> filled (uniform black) |> shift p)
                 |> group
 
         target =
-            circle 4 |> filled (uniform Color.red) |> shift model.target
+            circle 3 |> filled (uniform Color.red) |> shift model.target
 
         bg =
             rectangle model.width model.height |> filled (uniform Color.lightGray)
@@ -107,6 +107,10 @@ view model =
                 [ onClick <| SetJoints <| List.repeat 40 (Joint 20 0)
                 ]
                 [ text "Too many small joints" ]
+            , button
+                [ onClick <| SetJoints <| List.repeat 100 (Joint 2 0)
+                ]
+                [ text "Way too many tiny joints" ]
             ]
         ]
 
