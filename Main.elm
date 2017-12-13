@@ -84,8 +84,11 @@ view model =
 
         target =
             circle 4 |> filled (uniform Color.red) |> shift model.target
+
+        bg =
+            rectangle model.width model.height |> filled (uniform Color.lightGray)
     in
-        group [ lines, dots, target ]
+        group [ lines, dots, target, bg ]
             |> svgBox ( model.width, model.height )
             |> List.singleton
             |> div [ Pointer.move (pointerToCollage model >> SetTarget) ]
