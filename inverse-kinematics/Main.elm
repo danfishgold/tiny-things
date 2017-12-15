@@ -87,7 +87,10 @@ svgView model =
         group [ lines, dots, target, bg ]
             |> svgBox ( model.width, model.height )
             |> List.singleton
-            |> div [ Pointer.move (pointerToCollage model >> SetTarget) ]
+            |> div
+                [ Pointer.move (pointerToCollage model >> SetTarget)
+                , Pointer.touchMove (pointerToCollage model >> SetTarget)
+                ]
 
 
 view : Model -> Html Msg
